@@ -2,7 +2,7 @@
 
 Multisystem Inflammatory Syndrome in Children (MIS-C) hospitalisations in the US. This project uses count regression models (Poisson and Negative Binomial), with Random Forest and Gradient Boosting for comparison, to identify factors associated with longer hospital stays and to test how well length of stay (LOS) can be predicted.
 
-**Full write-up:** [report.md](report.md)
+**Full write-up:** [Report.md](Report.md)
 
 ## Key findings
 
@@ -22,10 +22,10 @@ Multisystem Inflammatory Syndrome in Children (MIS-C) hospitalisations in the US
 
 | File | Description |
 |---|---|
-| `misc_length_of_stay.ipynb` | Full analysis: exploration, cleaning, modelling, evaluation |
+| `MISC_length_of_stay.ipynb` | Full analysis: exploration, cleaning, modelling, evaluation |
 | `misc_c_surveillance.csv` | Raw surveillance data |
-| `report.md` | Methods, results and limitations |
-| `README.md` | Project overview |
+| `Report.md` | Methods, results and limitations |
+| `Readme.md` | Project overview |
 
 All tables and figures are produced inside the notebook.
 
