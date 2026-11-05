@@ -111,10 +111,10 @@ The full Table 1, with p-values, is in the notebook.
 - **In-hospital predictors:** ICU care, ventilation and treatments occur during the stay; their associations partly reflect that longer stays allow more interventions (reverse causation), and they cannot be used for prediction at admission.
 - **Deaths kept in the outcome:** for the 75 children who died, LOS is time to death rather than to recovery (a competing event).
 - **Census region:** 248 suppressed values were imputed with the most common region (South), which may bias regional estimates.
-- **Race coding:** the original indicator columns were combined by taking the first marked category, so multiracial children are not identified separately.
+- **Race categories:** the dataset records only White, Black, Other and Unknown, with one category per patient, so finer groups (for example Asian or multiracial) cannot be examined.
 - **Surveillance data:** case reporting and completeness vary by jurisdiction and over time.
 - **Transfers:** LOS reflects the reporting hospital only; children transferred between hospitals may have incomplete stays.
 
 ## 8. Reproducibility
 
-All analysis is in `misc_length_of_stay.ipynb`. Random seeds are fixed (`random_state = 42`), so results are reproducible with **Run All**.
+All analysis is in `MISC_length_of_stay.ipynb`. Random seeds are fixed (`random_state = 42`), so results are reproducible with **Run All**.
