@@ -1,0 +1,13 @@
+# PyCharm settings
+.idea/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Output files created by the notebook
+*.png
+*.xlsx
+
+# Python
+__pycache__/
+.venv/
