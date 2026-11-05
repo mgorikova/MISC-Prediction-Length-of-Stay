@@ -2,7 +2,7 @@
 
 ## 1. Aim
 
-To identify patient and clinical factors associated with longer hospital stays in children with Multisystem Inflammatory Syndrome in Children (MIS-C), and to assess how accurately length of stay (LOS) can be predicted.
+To identify patient and clinical factors associated with longer hospital stays in children with Multisystem Inflammatory Syndrome in Children (MIS-C), and to assess how accurately length of stay (LOS) can be predicted. A survival analysis of time to discharge checks whether the results hold when deaths and unfinished stays are handled explicitly.
 
 ## 2. Data
 
@@ -43,11 +43,23 @@ The full Table 1, with p-values, is in the notebook.
 
 ## 4. Methods
 
+### 4.1 Main model: Negative Binomial regression
+
 - **Outcome:** hospital LOS in days (a count).
 - **Model choice:** LOS variance is 26 times its mean, so a Poisson model (which assumes variance = mean) is inappropriate. **Negative Binomial (NB)** regression was the primary model; results are reported as incidence rate ratios (IRR), where IRR > 1 means a longer stay.
 - **Predictors (40):** age group, sex, race, ethnicity, census region, variant period, comorbidities, organ involvement, ICU care, shock, respiratory support and treatments. Demographic variables were kept regardless of significance as standard confounders.
 - **Validation:** 80/20 train/test split (train n = 7,036, test n = 1,759), stratified by ICU admission. Reference categories, encoding and imputation were fitted on the training set only.
 - **Comparison models:** Poisson, NB with ICU × shock and ICU × cardiac interactions, Random Forest and Gradient Boosting, compared by 5-fold cross-validated MAE on the training set.
+
+### 4.2 Sensitivity analysis: survival (time to discharge)
+
+The NB model excludes children still in hospital and treats a death like a discharge. The survival analysis handles both explicitly:
+
+- **Cohort:** all patients with a recorded LOS (n = 8,839): **8,639 discharged** (event of interest), **75 died** (competing event) and **125 censored** (still admitted or unknown outcome).
+- **Cumulative incidence** of discharge and death by ICU status (Aalen–Johansen; Kaplan–Meier would overstate discharge by treating deaths as censored).
+- **Cause-specific Cox models** for discharge: Model 1 (demographics, region, comorbidities) and Model 2 (adding ICU care, shock, intubation and severe cardiac involvement). Results are hazard ratios (HR), where **HR < 1 means slower discharge, i.e. a longer stay**.
+- **Proportional hazards** were tested; where they did not hold, the model was refitted stratified by ICU care × intubation.
+- **Cause-specific Cox model for death**, kept to three predictors because of the small number of deaths.
 
 ## 5. Results
 
@@ -98,23 +110,51 @@ The full Table 1, with p-values, is in the notebook.
 - The full model improves on the baseline by only about 9%.
 - Using only information available at admission (demographics, region, variant period, comorbidities), the model performs **worse** than the baseline. Most of the predictive information comes from what happens during the stay.
 
+### 5.4 Sensitivity analysis: survival (time to discharge)
+
+- **Cumulative incidence:** median time to discharge was **4 days without ICU care** and **6 days with ICU care**. All 75 deaths occurred in ICU patients.
+
+**Cause-specific Cox model for discharge** (HR < 1 = slower discharge, i.e. longer stay):
+
+| Factor | Model 1: baseline | Model 2: severity-adjusted |
+|---|---|---|
+| Intubation / mechanical ventilation | — | 0.35 (0.32–0.38) |
+| ICU level of care | — | 0.68 (0.65–0.73) |
+| Other comorbidities | 0.66 (0.61–0.71) | 0.68 (0.64–0.74) |
+| Age 16–20 years (vs 5–11) | 0.72 (0.66–0.77) | 0.77 (0.71–0.83) |
+| Shock | — | 0.80 (0.76–0.86) |
+| Black race (vs White) | 0.74 (0.71–0.78) | 0.81 (0.77–0.86) |
+| Severe cardiac involvement | — | 0.82 (0.78–0.87) |
+| Age < 1 year (vs 5–11) | 1.01 (0.89–1.14) | 0.87 (0.77–0.99) |
+| Hispanic or Latino | 0.89 (0.84–0.94) | 0.88 (0.83–0.93) |
+| Obesity | 0.88 (0.83–0.92) | 0.94 (0.89–0.99) |
+| Female (vs male) | 1.01 (0.97–1.05) | 1.02 (0.98–1.07) |
+
+- **Discrimination:** C-index **0.58** for Model 1 and **0.69** for Model 2, so clinical severity explains much more of the variation in time to discharge than demographics do.
+- **Proportional hazards** did not hold for the severity markers. Refitting the model stratified by ICU care × intubation left the demographic and comorbidity HRs almost unchanged (for example Black race 0.82, other comorbidities 0.70).
+- **Cause-specific Cox model for death** (75 events): intubation HR **28.3** (12.6–63.6) and other comorbidities HR **2.09** (1.30–3.37); shock was not significant once intubation was included (HR 1.45, 0.67–3.15).
+
+**Agreement with the main model.** Both analyses link severity, comorbidities and older adolescence to longer stays, and neither finds a difference by sex. **Race differed:** Black children were discharged more slowly in the Cox model, which adjusts for four severity markers only, but not in the NB model, which also adjusts for organ involvement and treatments. Part of the racial difference in LOS therefore runs through clinical severity and treatment.
+
 ## 6. Conclusions
 
 1. Negative Binomial regression is the appropriate model for LOS in MIS-C because of strong overdispersion.
 2. Infants under 1 year and children needing organ support (ventilation, ECMO, dialysis) or immune-modulator therapy had the longest stays.
 3. Stays were shorter during the Delta period, possibly reflecting improved recognition and management of MIS-C.
-4. After adjusting for clinical severity, race and sex were not associated with LOS.
-5. The model is useful for **explaining** which factors are linked to longer stays, but not for **predicting** an individual child's stay, especially at admission.
+4. Black children had longer stays in models with limited severity adjustment, but not after full adjustment for organ involvement and treatments, suggesting the difference runs largely through clinical course. Sex was not associated with LOS.
+5. The survival analysis, which keeps unfinished stays and treats death as a competing event, supports the main findings.
+6. The model is useful for **explaining** which factors are linked to longer stays, but not for **predicting** an individual child's stay, especially at admission.
 
 ## 7. Limitations
 
 - **In-hospital predictors:** ICU care, ventilation and treatments occur during the stay; their associations partly reflect that longer stays allow more interventions (reverse causation), and they cannot be used for prediction at admission.
-- **Deaths kept in the outcome:** for the 75 children who died, LOS is time to death rather than to recovery (a competing event).
-- **Census region:** 248 suppressed values were imputed with the most common region (South), which may bias regional estimates.
+- **Deaths in the main model:** for the 75 children who died, LOS is time to death rather than to recovery. The survival analysis addresses this by treating death as a competing event.
+- **Proportional hazards:** the assumption did not hold for the severity markers in the Cox model; the stratified model was used to check that the other results were not affected.
+- **Census region:** 248 suppressed values were imputed with the most common region (South) in the main model, which may bias regional estimates.
 - **Race categories:** the dataset records only White, Black, Other and Unknown, with one category per patient, so finer groups (for example Asian or multiracial) cannot be examined.
 - **Surveillance data:** case reporting and completeness vary by jurisdiction and over time.
 - **Transfers:** LOS reflects the reporting hospital only; children transferred between hospitals may have incomplete stays.
 
 ## 8. Reproducibility
 
-All analysis is in `MISC_length_of_stay.ipynb`. Random seeds are fixed (`random_state = 42`), so results are reproducible with **Run All**.
+The main analysis is in `MISC_length_of_stay.ipynb` and the survival analysis in `MISC_survival.ipynb`. Random seeds are fixed (`random_state = 42`, `seed = 42`), so results are reproducible with **Run All**.
